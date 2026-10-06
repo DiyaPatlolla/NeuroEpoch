@@ -1,0 +1,2101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroEpoch | Clinical AASM 30-Second Polysomnography & Quality Assurance Lab</title>
+  <meta name="description" content="Clinical electrophysiology 30-second epoch sleep staging simulator, digital caliper measurement tool, and laboratory quality assurance inter-scorer reliability platform aligned with UNC NDSS student learning outcomes.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #06090e;
+      --bg-surface: #0c121c;
+      --bg-card: #121a28;
+      --bg-card-hover: #182337;
+      --border: #1e2c42;
+      --border-highlight: #2f4567;
+      --text-main: #f0f4fc;
+      --text-muted: #8b9bb4;
+      --text-sub: #5c6c84;
+      
+      --cyan: #38bdf8;
+      --cyan-glow: rgba(56, 189, 248, 0.2);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.2);
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+      --indigo: #6366f1;
+      --purple: #a855f7;
+
+      --stage-w: #ef4444;
+      --stage-n1: #f97316;
+      --stage-n2: #3b82f6;
+      --stage-n3: #8b5cf6;
+      --stage-rem: #10b981;
+
+      --psg-grid-major: rgba(56, 189, 248, 0.12);
+      --psg-grid-minor: rgba(56, 189, 248, 0.04);
+      --psg-trace: #38bdf8;
+      --psg-eog: #34d399;
+      --psg-emg: #f472b6;
+      --psg-ecg: #fb923c;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* Top Clinical Navigation Bar */
+    header.clinical-header {
+      background: rgba(12, 18, 28, 0.95);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #0284c7, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px var(--cyan-glow);
+    }
+
+    .brand-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 2;
+    }
+
+    .brand-title h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .brand-title h1 span.highlight {
+      background: linear-gradient(90deg, var(--cyan), #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-title p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .header-nav-tabs {
+      display: flex;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .nav-tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 7px 16px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-tab-btn.active {
+      color: #fff;
+      background: var(--cyan);
+      color: #06090e;
+      font-weight: 700;
+      box-shadow: 0 0 14px var(--cyan-glow);
+    }
+
+    .header-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-muted);
+    }
+
+    .badge.pulse-green {
+      border-color: rgba(16, 185, 129, 0.4);
+      color: var(--emerald);
+    }
+
+    .badge.pulse-green::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      background: var(--emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Sub-bar / Telemetry Banner */
+    .telemetry-bar {
+      background: #090e17;
+      border-bottom: 1px solid var(--border);
+      padding: 6px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.73rem;
+      color: var(--text-muted);
+    }
+
+    .telemetry-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .telemetry-item span.val {
+      color: var(--cyan);
+      font-weight: 600;
+    }
+
+    /* Main App Layout */
+    main.app-container {
+      flex: 1;
+      padding: 18px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      max-width: 1700px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-content {
+      display: none;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .tab-content.active {
+      display: flex;
+    }
+
+    /* Clinical Diagnostic Oscilloscope Section */
+    .oscilloscope-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .oscilloscope-header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 18px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .epoch-selector-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .epoch-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.12);
+      color: var(--cyan);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+    }
+
+    .btn-icon {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-icon:hover {
+      background: var(--border);
+      border-color: var(--border-highlight);
+    }
+
+    .tool-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toggle-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .toggle-btn.active {
+      background: rgba(245, 158, 11, 0.15);
+      border-color: var(--amber);
+      color: var(--amber);
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+    }
+
+    .toggle-btn.active.green {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: var(--emerald);
+      color: var(--emerald);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+    }
+
+    /* Screen Canvas Canvas Container */
+    .canvas-viewport-wrapper {
+      position: relative;
+      background: #04070c;
+      width: 100%;
+      height: 480px;
+      user-select: none;
+    }
+
+    canvas#psgCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: default;
+    }
+
+    canvas#psgCanvas.caliper-mode {
+      cursor: crosshair;
+    }
+
+    /* Caliper Realtime Overlay */
+    .caliper-readout-card {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      background: rgba(12, 18, 28, 0.92);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--amber);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+      display: none;
+      z-index: 20;
+    }
+
+    .caliper-readout-card.visible {
+      display: block;
+    }
+
+    .caliper-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 4px;
+    }
+
+    .caliper-row span.label {
+      color: var(--text-muted);
+    }
+
+    .caliper-row span.val {
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .caliper-rule-tag {
+      margin-top: 6px;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      text-align: center;
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .caliper-rule-tag.met {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    /* Epoch Scoring Action Area */
+    .scoring-cockpit {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .scoring-cockpit-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .scoring-cockpit-header h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scoring-buttons-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+    }
+
+    .stage-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 14px 10px;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .stage-btn span.key-shortcut {
+      position: absolute;
+      top: 6px;
+      right: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--text-sub);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 2px 5px;
+      border-radius: 4px;
+    }
+
+    .stage-btn span.stage-code {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.01em;
+    }
+
+    .stage-btn span.stage-name {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .stage-btn:hover {
+      background: var(--bg-card-hover);
+      transform: translateY(-2px);
+    }
+
+    .stage-btn[data-stage="W"]:hover, .stage-btn[data-stage="W"].selected {
+      border-color: var(--stage-w);
+      color: var(--stage-w);
+      box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);
+    }
+
+    .stage-btn[data-stage="N1"]:hover, .stage-btn[data-stage="N1"].selected {
+      border-color: var(--stage-n1);
+      color: var(--stage-n1);
+      box-shadow: 0 0 16px rgba(249, 115, 22, 0.25);
+    }
+
+    .stage-btn[data-stage="N2"]:hover, .stage-btn[data-stage="N2"].selected {
+      border-color: var(--stage-n2);
+      color: var(--stage-n2);
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.25);
+    }
+
+    .stage-btn[data-stage="N3"]:hover, .stage-btn[data-stage="N3"].selected {
+      border-color: var(--stage-n3);
+      color: var(--stage-n3);
+      box-shadow: 0 0 16px rgba(139, 92, 246, 0.25);
+    }
+
+    .stage-btn[data-stage="R"]:hover, .stage-btn[data-stage="R"].selected {
+      border-color: var(--stage-rem);
+      color: var(--stage-rem);
+      box-shadow: 0 0 16px rgba(16, 185, 129, 0.25);
+    }
+
+    .stage-btn.selected {
+      background: var(--bg-surface);
+      font-weight: 800;
+    }
+
+    /* Clinical Decision Feedback Card */
+    .clinical-feedback-card {
+      border-radius: 10px;
+      padding: 16px 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .clinical-feedback-card.visible {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .feedback-banner {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .feedback-banner.correct {
+      color: var(--emerald);
+    }
+
+    .feedback-banner.incorrect {
+      color: var(--rose);
+    }
+
+    .feedback-details {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    .feedback-rationale-box {
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 3px solid var(--cyan);
+      padding: 10px 14px;
+      border-radius: 0 6px 6px 0;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Lower Analytics Grid (Hypnogram & Metrics) */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+
+    .dashboard-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .dashboard-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dashboard-card-header h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hypnogram-canvas-wrapper {
+      position: relative;
+      width: 100%;
+      height: 140px;
+      background: #04070c;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    canvas#hypnogramCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .metrics-summary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: var(--bg-surface);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+
+    .metric-row span.label {
+      color: var(--text-muted);
+    }
+
+    .metric-row span.value {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    /* Inter-Scorer Reliability (ConcordanceLab) View */
+    .isr-audit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .stat-hero-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 9, 14, 0.95));
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 12px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .stat-hero-number {
+      font-size: 2.8rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--emerald);
+      letter-spacing: -0.02em;
+    }
+
+    .stat-hero-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .confusion-matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      margin-top: 8px;
+    }
+
+    .confusion-matrix-table th, .confusion-matrix-table td {
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      text-align: center;
+    }
+
+    .confusion-matrix-table th {
+      background: var(--bg-surface);
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .confusion-matrix-table td.diagonal {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--emerald);
+      font-weight: 700;
+    }
+
+    .confusion-matrix-table td.error {
+      background: rgba(244, 63, 94, 0.12);
+      color: var(--rose);
+    }
+
+    /* 10-20 Scalp & Montage Explorer View */
+    .scalp-view-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .scalp-interactive-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .scalp-svg-wrapper {
+      width: 380px;
+      height: 380px;
+      position: relative;
+    }
+
+    .scalp-node {
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .scalp-node circle {
+      fill: var(--bg-surface);
+      stroke: var(--cyan);
+      stroke-width: 2;
+      transition: all 0.2s ease;
+    }
+
+    .scalp-node text {
+      fill: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      text-anchor: middle;
+      dominant-baseline: central;
+      pointer-events: none;
+    }
+
+    .scalp-node:hover circle, .scalp-node.active circle {
+      fill: var(--cyan);
+      stroke: #fff;
+      filter: drop-shadow(0 0 8px var(--cyan));
+    }
+
+    .scalp-node:hover text, .scalp-node.active text {
+      fill: #06090e;
+    }
+
+    .electrode-inspector-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .phase-reversal-box {
+      background: #04070c;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.6;
+    }
+
+    /* Modal / Guidelines Drawer */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 12, 0.8);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal-window {
+      background: var(--bg-card);
+      border: 1px solid var(--border-highlight);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 900px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.8);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-body {
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-main);
+    }
+
+    .guideline-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .guideline-card h4 {
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Footer */
+    footer.app-footer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    footer.app-footer a {
+      color: var(--cyan);
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <header class="clinical-header">
+    <div class="brand-group">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24">
+          <path d="M2 12h3l2-6 3 12 3-8 2 5 2-3h5"/>
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h1>NeuroEpoch <span class="highlight">PSG Lab</span></h1>
+        <p>AASM 30s Polysomnography & Quality Assurance Workstation</p>
+      </div>
+    </div>
+
+    <!-- Mode Tabs -->
+    <nav class="header-nav-tabs">
+      <button class="nav-tab-btn active" data-tab="tab-scoring">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        30s Epoch Scorer
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-qa">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Lab QA & Inter-Scorer (ISR)
+      </button>
+      <button class="nav-tab-btn" data-tab="tab-montage">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20"/><path d="M2 12h20"/></svg>
+        10-20 Scalp & Montages
+      </button>
+      <button class="nav-tab-btn" id="openGuidelinesBtn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+        AASM Manual
+      </button>
+    </nav>
+
+    <!-- Academic & Telemetry Badges -->
+    <div class="header-meta">
+      <div class="badge pulse-green">IMPEDANCE &lt; 5kΩ</div>
+      <div class="badge">UNC NDSS SLO-ALIGNED</div>
+    </div>
+  </header>
+
+  <!-- Technical Telemetry Strip -->
+  <div class="telemetry-bar">
+    <div class="telemetry-item">
+      <span>PAGE WINDOW:</span> <span class="val">30.0 SECONDS</span>
+    </div>
+    <div class="telemetry-item">
+      <span>TIMEBASE:</span> <span class="val">10 mm/sec (Standard PSG)</span>
+    </div>
+    <div class="telemetry-item">
+      <span>NOTCH:</span> <span class="val">60 Hz ACTIVE</span>
+    </div>
+    <div class="telemetry-item">
+      <span>FILTERS:</span> <span class="val">EEG 0.3–35 Hz | EMG 10–100 Hz</span>
+    </div>
+    <div class="telemetry-item">
+      <span>SAMPLING RATE:</span> <span class="val">200 Hz / CH</span>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="app-container">
+
+    <!-- ================================================================= -->
+    <!-- TAB 1: 30-SECOND EPOCH SCORING WORKSTATION                        -->
+    <!-- ================================================================= -->
+    <section id="tab-scoring" class="tab-content active">
+      
+      <!-- Oscilloscope Section -->
+      <div class="oscilloscope-panel">
+        <div class="oscilloscope-header">
+          <div class="epoch-selector-group">
+            <button class="btn-icon" id="prevEpochBtn">◀ Prev Epoch</button>
+            <div class="epoch-tag" id="epochDisplayTag">EPOCH #1 / 8</div>
+            <button class="btn-icon" id="nextEpochBtn">Next Epoch ▶</button>
+            <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 8px;" id="epochCaseTitle">Patient A: Baseline Rest & Sleep Onset</span>
+          </div>
+
+          <div class="tool-controls">
+            <button class="toggle-btn" id="toggleCaliperBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.3 8.7 8.7 21.3a2 2 0 0 1-2.8 0L2.7 18.1a2 2 0 0 1 0-2.8L15.3 2.7a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8z"/><path d="m14 7 3 3"/><path d="m9 12 3 3"/></svg>
+              📐 Digital Caliper: OFF
+            </button>
+            <button class="toggle-btn" id="toggleCluesBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              Show Waveform Markers
+            </button>
+          </div>
+        </div>
+
+        <!-- Canvas Oscilloscope Viewport -->
+        <div class="canvas-viewport-wrapper">
+          <canvas id="psgCanvas"></canvas>
+          
+          <!-- Interactive Caliper Readout Overlay -->
+          <div class="caliper-readout-card" id="caliperOverlay">
+            <div class="caliper-row">
+              <span class="label">Duration (Δt):</span>
+              <span class="val" id="caliperDurationVal">0.00 s</span>
+            </div>
+            <div class="caliper-row">
+              <span class="label">Amplitude (ΔV):</span>
+              <span class="val" id="caliperAmpVal">0.0 μV</span>
+            </div>
+            <div class="caliper-row">
+              <span class="label">Est. Frequency:</span>
+              <span class="val" id="caliperFreqVal">0.0 Hz</span>
+            </div>
+            <div class="caliper-rule-tag" id="caliperRuleFeedback">
+              Click & drag across a wave to measure
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scoring Cockpit -->
+      <div class="scoring-cockpit">
+        <div class="scoring-cockpit-header">
+          <h3>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20"/><path d="m17 5-5-3-5 3"/><path d="m17 19-5 3-5-3"/><path d="M2 12h20"/></svg>
+            AASM Diagnostic Stage Assignment (Press 1–5 or click stage)
+          </h3>
+          <span style="font-size: 0.78rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;">
+            Rule: Assign stage occupying &gt; 50% of the 30-second epoch
+          </span>
+        </div>
+
+        <div class="scoring-buttons-grid">
+          <button class="stage-btn" data-stage="W">
+            <span class="key-shortcut">[1]</span>
+            <span class="stage-code" style="color: var(--stage-w);">Stage W</span>
+            <span class="stage-name">Wakefulness (Alpha &gt; 50%)</span>
+          </button>
+          <button class="stage-btn" data-stage="N1">
+            <span class="key-shortcut">[2]</span>
+            <span class="stage-code" style="color: var(--stage-n1);">Stage N1</span>
+            <span class="stage-name">Light Sleep (LAMF / SEMs)</span>
+          </button>
+          <button class="stage-btn" data-stage="N2">
+            <span class="key-shortcut">[3]</span>
+            <span class="stage-code" style="color: var(--stage-n2);">Stage N2</span>
+            <span class="stage-name">Spindles &amp; K-Complexes</span>
+          </button>
+          <button class="stage-btn" data-stage="N3">
+            <span class="key-shortcut">[4]</span>
+            <span class="stage-code" style="color: var(--stage-n3);">Stage N3</span>
+            <span class="stage-name">Slow Wave Sleep (&ge; 20% SWA)</span>
+          </button>
+          <button class="stage-btn" data-stage="R">
+            <span class="key-shortcut">[5]</span>
+            <span class="stage-code" style="color: var(--stage-rem);">Stage REM</span>
+            <span class="stage-name">Dream Sleep (Atonia + REMs)</span>
+          </button>
+        </div>
+
+        <!-- Clinical Feedback Box -->
+        <div class="clinical-feedback-card" id="feedbackCard">
+          <div class="feedback-banner" id="feedbackBanner">
+            <span id="feedbackIcon">✔</span>
+            <span id="feedbackTitle">Diagnosis Verified</span>
+          </div>
+          <div class="feedback-details" id="feedbackDetails"></div>
+          <div class="feedback-rationale-box" id="feedbackRationale"></div>
+        </div>
+      </div>
+
+      <!-- Lower Hypnogram & Sleep Architecture Analytics -->
+      <div class="analytics-grid">
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h4>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Live Hypnogram (Sleep Architecture Progression)
+            </h4>
+            <span style="font-size: 0.75rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace;" id="hypnogramProgressLabel">
+              Scored: 0 / 8 Epochs
+            </span>
+          </div>
+          <div class="hypnogram-canvas-wrapper">
+            <canvas id="hypnogramCanvas"></canvas>
+          </div>
+        </div>
+
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <h4>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+              Clinical Polysomnography Metrics
+            </h4>
+          </div>
+          <div class="metrics-summary-list">
+            <div class="metric-row">
+              <span class="label">Total Recording Time (TRT):</span>
+              <span class="value" id="metricTRT">4.0 min</span>
+            </div>
+            <div class="metric-row">
+              <span class="label">Total Sleep Time (TST):</span>
+              <span class="value" id="metricTST">0.0 min</span>
+            </div>
+            <div class="metric-row">
+              <span class="label">Sleep Efficiency (SE %):</span>
+              <span class="value" id="metricSE">0.0%</span>
+            </div>
+            <div class="metric-row">
+              <span class="label">Scoring Accuracy:</span>
+              <span class="value" id="metricAccuracy" style="color: var(--cyan);">100%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 2: LAB QA & INTER-SCORER RELIABILITY (ISR AUDIT)              -->
+    <!-- ================================================================= -->
+    <section id="tab-qa" class="tab-content">
+      <div class="dashboard-card">
+        <div class="dashboard-card-header">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 4px;">
+              AASM Laboratory Quality Assurance: Inter-Scorer Reliability (ISR)
+            </h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">
+              Satisfies <strong>UNC NDSS SLO 3 (Facility Oversight)</strong> &amp; <strong>SLO 2 (Electrophysiology &amp; Laboratory Science Overlap)</strong>. Audits agreement between technician scores and the Board-Certified Medical Director Consensus.
+            </p>
+          </div>
+          <button class="btn-icon" id="runISRAuditBtn">⚡ Run Simulated Laboratory Audit</button>
+        </div>
+
+        <div class="isr-audit-grid" style="margin-top: 10px;">
+          <!-- Cohen's Kappa Stat Card -->
+          <div class="stat-hero-card">
+            <div style="display: flex; justify-content: space-between; align-items: baseline;">
+              <span style="font-size: 0.85rem; font-weight: 700; color: var(--emerald); text-transform: uppercase;">
+                Cohen's Kappa (κ)
+              </span>
+              <span class="badge pulse-green" id="kappaGradeBadge">EXCELLENT CONCORDANCE</span>
+            </div>
+            <div class="stat-hero-number" id="kappaValDisplay">0.884</div>
+            <p class="stat-hero-sub" id="kappaExplanationText">
+              Adjusts raw agreement for chance probability. Values &gt; 0.80 indicate strong clinical compliance fulfilling AASM Sleep Facility Accreditation Standards.
+            </p>
+            <div style="margin-top: 8px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; color: var(--text-muted);">
+              Overall Agreement: <strong style="color: var(--text-main);" id="overallAgreementVal">91.4%</strong> (Target &ge; 85%)
+            </div>
+          </div>
+
+          <!-- Confusion Matrix Card -->
+          <div class="dashboard-card" style="margin: 0;">
+            <h4 style="font-size: 0.88rem; font-weight: 700;">Diagnostic Confusion Matrix</h4>
+            <p style="font-size: 0.75rem; color: var(--text-muted);">
+              Rows represent True Gold Standard; Columns represent Technician Scoring. Diagonal cells reflect consensus concordances.
+            </p>
+            <table class="confusion-matrix-table" id="confusionTable">
+              <thead>
+                <tr>
+                  <th>True \ Scored</th>
+                  <th>W</th>
+                  <th>N1</th>
+                  <th>N2</th>
+                  <th>N3</th>
+                  <th>REM</th>
+                </tr>
+              </thead>
+              <tbody id="confusionTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Automated Clinical Remediation Report -->
+        <div class="guideline-card" style="margin-top: 14px; border-color: rgba(56, 189, 248, 0.3);">
+          <h4 style="color: var(--cyan);">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Automated Quality Manager Clinical Audit &amp; Remediation Finding
+          </h4>
+          <p style="font-size: 0.84rem; line-height: 1.6; color: var(--text-main);" id="remediationReportText">
+            Audit Complete: Minor discordance noted in Stage N1 vs. Wake transitions (8% of N1 epochs scored as Wake due to subtle alpha dropout). Technologist recommended to utilize digital calipers for occipital alpha quantification (&lt; 50% threshold) and verify presence of Slow Rolling Eye Movements (SEMs) on EOG channels. Stage N2, N3, and REM concordance exceeds 94%.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================= -->
+    <!-- TAB 3: 10-20 SCALP MAP & MONTAGE EXPLORER                         -->
+    <!-- ================================================================= -->
+    <section id="tab-montage" class="tab-content">
+      <div class="scalp-view-container">
+        
+        <!-- Interactive 2D Scalp SVG -->
+        <div class="scalp-interactive-card">
+          <div style="text-align: center;">
+            <h3 style="font-size: 1.05rem; font-weight: 700;">International 10-20 Electrode System</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-top: 4px;">
+              Click any electrode site to inspect anatomical lobe, clinical derivation, and typical waveforms.
+            </p>
+          </div>
+
+          <div class="scalp-svg-wrapper">
+            <svg viewBox="0 0 400 400" width="100%" height="100%">
+              <!-- Head Outline -->
+              <circle cx="200" cy="200" r="160" fill="#090e17" stroke="#1e2c42" stroke-width="3"/>
+              <!-- Nose (Nasion) -->
+              <polygon points="185,40 215,40 200,12" fill="#121a28" stroke="#1e2c42" stroke-width="2"/>
+              <text x="200" y="32" fill="#5c6c84" font-size="10" font-family="'JetBrains Mono'" text-anchor="middle">NASION</text>
+              <!-- Ears (Preauricular) -->
+              <ellipse cx="38" cy="200" rx="10" ry="24" fill="#121a28" stroke="#1e2c42" stroke-width="2"/>
+              <text x="22" y="204" fill="#5c6c84" font-size="10" font-family="'JetBrains Mono'" text-anchor="middle">L</text>
+              <ellipse cx="362" cy="200" rx="10" ry="24" fill="#121a28" stroke="#1e2c42" stroke-width="2"/>
+              <text x="378" y="204" fill="#5c6c84" font-size="10" font-family="'JetBrains Mono'" text-anchor="middle">R</text>
+              <text x="200" y="380" fill="#5c6c84" font-size="10" font-family="'JetBrains Mono'" text-anchor="middle">INION</text>
+
+              <!-- Reference Grid Lines -->
+              <line x1="200" y1="40" x2="200" y2="360" stroke="#1e2c42" stroke-dasharray="4,4"/>
+              <line x1="40" y1="200" x2="360" y2="200" stroke="#1e2c42" stroke-dasharray="4,4"/>
+
+              <!-- Electrode Nodes -->
+              <!-- Frontal Polar -->
+              <g class="scalp-node" data-electrode="Fp1" transform="translate(145, 95)"><circle r="18"/><text>Fp1</text></g>
+              <g class="scalp-node" data-electrode="Fp2" transform="translate(255, 95)"><circle r="18"/><text>Fp2</text></g>
+              <g class="scalp-node" data-electrode="Fz" transform="translate(200, 140)"><circle r="18"/><text>Fz</text></g>
+              <g class="scalp-node" data-electrode="F3" transform="translate(130, 145)"><circle r="18"/><text>F3</text></g>
+              <g class="scalp-node" data-electrode="F4" transform="translate(270, 145)"><circle r="18"/><text>F4</text></g>
+              <!-- Central -->
+              <g class="scalp-node active" data-electrode="C3" transform="translate(115, 200)"><circle r="18"/><text>C3</text></g>
+              <g class="scalp-node" data-electrode="Cz" transform="translate(200, 200)"><circle r="18"/><text>Cz</text></g>
+              <g class="scalp-node" data-electrode="C4" transform="translate(285, 200)"><circle r="18"/><text>C4</text></g>
+              <!-- Parietal -->
+              <g class="scalp-node" data-electrode="P3" transform="translate(130, 255)"><circle r="18"/><text>P3</text></g>
+              <g class="scalp-node" data-electrode="Pz" transform="translate(200, 260)"><circle r="18"/><text>Pz</text></g>
+              <g class="scalp-node" data-electrode="P4" transform="translate(270, 255)"><circle r="18"/><text>P4</text></g>
+              <!-- Occipital -->
+              <g class="scalp-node" data-electrode="O1" transform="translate(150, 315)"><circle r="18"/><text>O1</text></g>
+              <g class="scalp-node" data-electrode="O2" transform="translate(250, 315)"><circle r="18"/><text>O2</text></g>
+              <!-- Mastoid References -->
+              <g class="scalp-node" data-electrode="M1" transform="translate(50, 240)"><circle r="16"/><text>M1</text></g>
+              <g class="scalp-node" data-electrode="M2" transform="translate(350, 240)"><circle r="16"/><text>M2</text></g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Electrode Details & Phase Reversal Demo -->
+        <div class="electrode-inspector-card">
+          <div>
+            <span class="badge" style="color: var(--cyan); border-color: var(--cyan);" id="electrodeLobeBadge">CENTRAL REGION (LEFT HEMISPHERE)</span>
+            <h3 style="font-size: 1.4rem; font-weight: 800; margin-top: 8px;" id="electrodeTitle">Electrode Site: C3</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; margin-top: 6px;" id="electrodeDesc">
+              Located over the left sensorimotor cortex (Rolandic area). Essential in polysomnography and clinical EEG for registering vertex sharp waves, sleep spindles (11–16 Hz), and mu rhythm. Referenced to contralateral mastoid (M2) in standard AASM PSG montage.
+            </p>
+          </div>
+
+          <!-- Phase Reversal Electrophysiology Demonstration -->
+          <div class="phase-reversal-box">
+            <h4 style="color: var(--amber); font-size: 0.85rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+              ⚡ Clinical Electrophysiology: Phase Reversal Localization
+            </h4>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
+              In a bipolar longitudinal ("Double Banana") montage, when an epileptic spike occurs under electrode <strong>C3</strong>:
+            </p>
+            <div style="background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 6px; font-size: 0.76rem; border-left: 3px solid var(--amber);">
+              • Channel 1 (F3 - C3): Grid 2 is more negative &rarr; <strong>Deflects DOWNWARD</strong><br>
+              • Channel 2 (C3 - P3): Grid 1 is more negative &rarr; <strong>Deflects UPWARD</strong><br>
+              • <strong>Result</strong>: The two channels point toward each other, localizing the focus to <strong>C3</strong>!
+            </div>
+          </div>
+
+          <!-- Montage Comparison Table -->
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <h4 style="font-size: 0.85rem; font-weight: 700;">AASM Recommended Diagnostic Montages</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.78rem;">
+              <div style="background: var(--bg-surface); padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+                <strong style="color: var(--cyan);">Referential Montage (AASM)</strong><br>
+                F4-M1, C4-M1, O2-M1<br>
+                F3-M2, C3-M2, O1-M2<br>
+                <em>Best for sleep staging &amp; amplitudes.</em>
+              </div>
+              <div style="background: var(--bg-surface); padding: 10px; border-radius: 6px; border: 1px solid var(--border);">
+                <strong style="color: var(--indigo);">Bipolar Montage (Longitudinal)</strong><br>
+                Fp1-F3, F3-C3, C3-P3, P3-O1<br>
+                Fp2-F4, F4-C4, C4-P4, P4-O2<br>
+                <em>Best for spike localization &amp; phase reversals.</em>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Guidelines Modal -->
+  <div class="modal-backdrop" id="guidelinesModal">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h3 style="font-size: 1.1rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+          📖 AASM Scoring Manual Reference (v2.6 / v3.0 Criteria)
+        </h3>
+        <button class="btn-icon" id="closeGuidelinesBtn">✕ Close</button>
+      </div>
+      <div class="modal-body">
+        
+        <div class="guideline-card" style="border-left: 4px solid var(--stage-w);">
+          <h4 style="color: var(--stage-w);">Stage W (Wakefulness)</h4>
+          <p>Scored when &gt; 50% of the epoch has <strong>Posterior Dominant Rhythm (Alpha, 8–13 Hz)</strong> in occipital derivations (O1-M2, O2-M1) with eyes closed. Also characterized by eye blinks (0.5–2 Hz), rapid voluntary eye movements, and high tonic submental EMG.</p>
+        </div>
+
+        <div class="guideline-card" style="border-left: 4px solid var(--stage-n1);">
+          <h4 style="color: var(--stage-n1);">Stage N1 (NREM 1 - Drowsiness / Sleep Onset)</h4>
+          <p>Scored when alpha rhythm attenuates and is replaced by <strong>Low-Amplitude Mixed-Frequency (LAMF, 4–7 Hz Theta)</strong> activity for &gt; 50% of the epoch. Accompanied by <strong>Slow Rolling Eye Movements (SEMs)</strong> on EOG and prominent <strong>Vertex Sharp Waves</strong> (&lt; 200 ms duration) in central channels.</p>
+        </div>
+
+        <div class="guideline-card" style="border-left: 4px solid var(--stage-n2);">
+          <h4 style="color: var(--stage-n2);">Stage N2 (NREM 2 - Core Light Sleep)</h4>
+          <p>Scored when either of the following occurs during the epoch or preceding epoch (without arousal):<br>
+          1. One or more <strong>Sleep Spindles</strong>: Distinct burst of 11–16 Hz (usually 12–14 Hz) sinusoidal waves lasting <strong>&ge; 0.5 seconds</strong> (maximal central).<br>
+          2. One or more <strong>K-Complexes</strong>: Well-delineated sharp negative wave followed by positive wave lasting <strong>&ge; 0.5 seconds</strong> (maximal frontal).</p>
+        </div>
+
+        <div class="guideline-card" style="border-left: 4px solid var(--stage-n3);">
+          <h4 style="color: var(--stage-n3);">Stage N3 (NREM 3 - Slow Wave Deep Sleep)</h4>
+          <p>Scored when <strong>&ge; 20% of the 30-second epoch (&ge; 6 seconds)</strong> consists of slow wave activity: delta waves with frequency <strong>0.5–2.0 Hz</strong> and peak-to-peak amplitude <strong>&gt; 75 μV</strong> (measured in frontal derivations F4-M1 or F3-M2).</p>
+        </div>
+
+        <div class="guideline-card" style="border-left: 4px solid var(--stage-rem);">
+          <h4 style="color: var(--stage-rem);">Stage R (REM - Rapid Eye Movement Sleep)</h4>
+          <p>Scored when all three criteria are met simultaneously:<br>
+          1. Low-amplitude mixed-frequency EEG (desynchronized, may exhibit 2–6 Hz <strong>Sawtooth Waves</strong>).<br>
+          2. Submental EMG tone reaches baseline <strong>Atonia</strong> (lowest tone of the entire recording).<br>
+          3. Bursts of <strong>Rapid Eye Movements (REMs)</strong> on EOG channels.</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div>
+      NeuroEpoch Platform &copy; 2026 Diya Patlolla | Designed for Pre-Med &amp; Neurodiagnostics at UNC Chapel Hill
+    </div>
+    <div style="display: flex; gap: 16px;">
+      <span>Standard: AASM v3.0</span>
+      <span>Accreditation: ABRET &amp; BRPT Aligned</span>
+    </div>
+  </footer>
+
+  <!-- Core Electrophysiology & Simulation Engine -->
+  <script>
+    /* =====================================================================
+       1. CLINICAL PATIENT EPOCH REPOSITORY (Authentic PSG Characteristics)
+       ===================================================================== */
+    const EPOCHS = [
+      {
+        id: 1,
+        title: "Epoch #1: Eyes-Closed Resting State (Sleep Onset Latency)",
+        stage: "W",
+        rationale: "Posterior Dominant Alpha Rhythm (10 Hz) covers > 70% of the occipital channel (O2-M1). Submental chin EMG shows high tonic muscle tone with intermittent voluntary blink deflections on EOG.",
+        aasmRule: "AASM Rule 2.1: Stage W is scored when > 50% of the epoch has alpha rhythm in occipital derivations.",
+        markers: [
+          { ch: 2, tStart: 4.2, tEnd: 24.8, label: "Alpha Rhythm (10 Hz, >50%)" },
+          { ch: 3, tStart: 1.5, tEnd: 3.2, label: "Eye Blink Saccade" }
+        ],
+        generator: (ch, t) => {
+          // ch: 0=F4-M1, 1=C4-M1, 2=O2-M1, 3=E1-M2, 4=E2-M2, 5=Chin, 6=ECG
+          if (ch === 2) {
+            // Occipital Alpha (10 Hz, 50 uV)
+            return Math.sin(2 * Math.PI * 10 * t) * 35 + Math.sin(2 * Math.PI * 19 * t) * 6 + (Math.random() - 0.5) * 8;
+          } else if (ch === 1) {
+            // Central (mixture of alpha and beta)
+            return Math.sin(2 * Math.PI * 10 * t) * 16 + Math.sin(2 * Math.PI * 22 * t) * 8 + (Math.random() - 0.5) * 6;
+          } else if (ch === 0) {
+            // Frontal
+            return Math.sin(2 * Math.PI * 9.8 * t) * 12 + (Math.random() - 0.5) * 8;
+          } else if (ch === 3 || ch === 4) {
+            // EOG with blink deflections around 2s and 18s
+            let blink = 0;
+            if (Math.abs(t - 2.2) < 0.3) blink = Math.sin((t - 1.9) * Math.PI / 0.6) * (ch === 3 ? 60 : -60);
+            if (Math.abs(t - 18.5) < 0.3) blink = Math.sin((t - 18.2) * Math.PI / 0.6) * (ch === 3 ? 55 : -55);
+            return blink + (Math.random() - 0.5) * 6;
+          } else if (ch === 5) {
+            // Chin EMG: High tonic
+            return (Math.random() - 0.5) * 30 + Math.sin(2 * Math.PI * 45 * t) * 8;
+          } else if (ch === 6) {
+            // ECG QRS
+            return generateECG(t);
+          }
+          return 0;
+        }
+      },
+      {
+        id: 2,
+        title: "Epoch #2: Drowsy Transition (Sleep Onset)",
+        stage: "N1",
+        rationale: "Occipital alpha rhythm attenuates and is replaced by Low-Amplitude Mixed-Frequency (LAMF, 4–7 Hz theta) activity. EOG demonstrates classic Slow Rolling Eye Movements (SEMs). Prominent Vertex Sharp Wave noted at second 14.",
+        aasmRule: "AASM Rule 2.2: Stage N1 is scored when alpha rhythm is attenuated and replaced by LAMF for > 50% of the epoch.",
+        markers: [
+          { ch: 3, tStart: 3.0, tEnd: 9.5, label: "Slow Rolling Eye Movements (SEMs)" },
+          { ch: 1, tStart: 13.8, tEnd: 14.6, label: "Vertex Sharp Wave (<200ms)" }
+        ],
+        generator: (ch, t) => {
+          if (ch === 2) {
+            // Attenuated Alpha, LAMF theta (5 Hz)
+            return Math.sin(2 * Math.PI * 5.2 * t) * 18 + Math.sin(2 * Math.PI * 11 * t) * 6 + (Math.random() - 0.5) * 8;
+          } else if (ch === 1) {
+            // Central with Vertex wave at t=14.2
+            let vWave = 0;
+            if (Math.abs(t - 14.2) < 0.15) {
+              vWave = -Math.sin((t - 14.05) * Math.PI / 0.3) * 65;
+            }
+            return vWave + Math.sin(2 * Math.PI * 5 * t) * 22 + (Math.random() - 0.5) * 8;
+          } else if (ch === 0) {
+            return Math.sin(2 * Math.PI * 4.8 * t) * 16 + (Math.random() - 0.5) * 8;
+          } else if (ch === 3 || ch === 4) {
+            // Slow rolling eye movements (0.2 Hz out of phase)
+            const sem = Math.sin(2 * Math.PI * 0.25 * t) * (ch === 3 ? 42 : -42);
+            return sem + (Math.random() - 0.5) * 6;
+          } else if (ch === 5) {
+            // Moderately decreased EMG
+            return (Math.random() - 0.5) * 14;
+          } else if (ch === 6) {
+            return generateECG(t);
+          }
+          return 0;
+        }
+      },
+      {
+        id: 3,
+        title: "Epoch #3: Stable NREM Stage 2 (Classic Spindles & K-Complex)",
+        stage: "N2",
+        rationale: "Displays multiple distinctive 13 Hz Sleep Spindles (duration 0.85s) in central channels, alongside a prominent biphasic K-Complex (>0.5s duration) at second 18. Slow wave activity is < 20%.",
+        aasmRule: "AASM Rule 2.3: Stage N2 is scored when one or more K-complexes or sleep spindles occur in the epoch.",
+        markers: [
+          { ch: 1, tStart: 6.2, tEnd: 7.2, label: "Sleep Spindle (13 Hz, 0.9s)" },
+          { ch: 0, tStart: 17.5, tEnd: 18.6, label: "K-Complex (Biphasic, >0.5s)" }
+        ],
+        generator: (ch, t) => {
+          let spindle = 0;
+          if (t >= 6.2 && t <= 7.2) {
+            const env = Math.sin((t - 6.2) * Math.PI / 1.0);
+            spindle = Math.sin(2 * Math.PI * 13.5 * t) * 45 * env;
+          }
+          let kComplex = 0;
+          if (t >= 17.5 && t <= 18.6) {
+            const relT = t - 17.5;
+            if (relT < 0.4) kComplex = -Math.sin(relT * Math.PI / 0.4) * 85;
+            else kComplex = Math.sin((relT - 0.4) * Math.PI / 0.7) * 45;
+          }
+
+          if (ch === 1) { // Central
+            return spindle + kComplex * 0.7 + Math.sin(2 * Math.PI * 6 * t) * 15 + (Math.random() - 0.5) * 6;
+          } else if (ch === 0) { // Frontal (Max K-Complex)
+            return kComplex + spindle * 0.5 + Math.sin(2 * Math.PI * 5 * t) * 18 + (Math.random() - 0.5) * 6;
+          } else if (ch === 2) { // Occipital
+            return spindle * 0.3 + Math.sin(2 * Math.PI * 6.5 * t) * 14 + (Math.random() - 0.5) * 6;
+          } else if (ch === 3 || ch === 4) {
+            return (Math.random() - 0.5) * 5;
+          } else if (ch === 5) {
+            return (Math.random() - 0.5) * 10;
+          } else if (ch === 6) {
+            return generateECG(t);
+          }
+          return 0;
+        }
+      },
+      {
+        id: 4,
+        title: "Epoch #4: Borderline Spindle Duration Assessment",
+        stage: "N2",
+        rationale: "Caliper measurement confirms the focal 14 Hz rhythmic burst at second 11.2 lasts 0.68 seconds, fulfilling the AASM criterion of duration >= 0.5s.",
+        aasmRule: "AASM Criterion: Sleep spindles must have a duration >= 0.5 seconds to be scored.",
+        markers: [
+          { ch: 1, tStart: 11.2, tEnd: 11.9, label: "Verified Spindle (0.7s >= 0.5s)" }
+        ],
+        generator: (ch, t) => {
+          let spindle = 0;
+          if (t >= 11.2 && t <= 11.9) {
+            const env = Math.sin((t - 11.2) * Math.PI / 0.7);
+            spindle = Math.sin(2 * Math.PI * 14.0 * t) * 42 * env;
+          }
+          if (ch === 1) return spindle + Math.sin(2 * Math.PI * 5.5 * t) * 14 + (Math.random() - 0.5) * 6;
+          if (ch === 0) return spindle * 0.6 + Math.sin(2 * Math.PI * 5.0 * t) * 16 + (Math.random() - 0.5) * 6;
+          if (ch === 2) return Math.sin(2 * Math.PI * 6.0 * t) * 12 + (Math.random() - 0.5) * 6;
+          if (ch === 5) return (Math.random() - 0.5) * 8;
+          if (ch === 6) return generateECG(t);
+          return (Math.random() - 0.5) * 5;
+        }
+      },
+      {
+        id: 5,
+        title: "Epoch #5: Slow Wave Sleep / Deep Sleep (N3)",
+        stage: "N3",
+        rationale: "High-voltage (> 75 μV), low-frequency (0.5–2.0 Hz) Delta waves occupy 11.5 seconds of the epoch (~38% of total epoch time, easily surpassing the >= 20% AASM threshold).",
+        aasmRule: "AASM Rule 2.4: Stage N3 is scored when >= 20% of an epoch consists of slow wave activity (>75 μV, 0.5–2.0 Hz).",
+        markers: [
+          { ch: 0, tStart: 2.0, tEnd: 13.5, label: "Slow Wave Delta Activity (>75μV, >=20%)" }
+        ],
+        generator: (ch, t) => {
+          // Continuous high-voltage slow waves in frontal & central
+          const delta = Math.sin(2 * Math.PI * 1.1 * t) * 92 + Math.sin(2 * Math.PI * 0.7 * t) * 45;
+          if (ch === 0) return delta + (Math.random() - 0.5) * 6;
+          if (ch === 1) return delta * 0.75 + (Math.random() - 0.5) * 6;
+          if (ch === 2) return delta * 0.45 + (Math.random() - 0.5) * 6;
+          if (ch === 3 || ch === 4) return delta * 0.2 + (Math.random() - 0.5) * 4;
+          if (ch === 5) return (Math.random() - 0.5) * 6;
+          if (ch === 6) return generateECG(t);
+          return 0;
+        }
+      },
+      {
+        id: 6,
+        title: "Epoch #6: Phasic & Tonic REM Sleep (Dream Sleep)",
+        stage: "R",
+        rationale: "Low-amplitude mixed-frequency EEG with classic Sawtooth Waves (3 Hz) in central leads. Chin EMG shows complete muscle atonia (flatlined baseline). EOG demonstrates conjugate out-of-phase Rapid Eye Movements.",
+        aasmRule: "AASM Rule 2.5: Stage R requires simultaneous presence of LAMF EEG, lowest submental EMG tone, and rapid eye movements.",
+        markers: [
+          { ch: 3, tStart: 14.0, tEnd: 17.5, label: "Rapid Eye Movement Bursts (Conjugate)" },
+          { ch: 1, tStart: 8.5, tEnd: 11.0, label: "Sawtooth Waves (3 Hz)" },
+          { ch: 5, tStart: 0.0, tEnd: 30.0, label: "Complete Chin EMG Atonia" }
+        ],
+        generator: (ch, t) => {
+          if (ch === 1) { // Central with sawtooth waves at t=9-11
+            let saw = 0;
+            if (t >= 8.5 && t <= 11.0) {
+              saw = (2 * ((t * 3.5) - Math.floor((t * 3.5) + 0.5))) * 32;
+            }
+            return saw + Math.sin(2 * Math.PI * 5.8 * t) * 16 + (Math.random() - 0.5) * 8;
+          } else if (ch === 0 || ch === 2) {
+            return Math.sin(2 * Math.PI * 6.2 * t) * 14 + (Math.random() - 0.5) * 8;
+          } else if (ch === 3 || ch === 4) {
+            // Bursts of REMs at t=14-17
+            let rem = 0;
+            if (t >= 14.0 && t <= 17.5) {
+              rem = Math.sin(2 * Math.PI * 2.2 * t) * (ch === 3 ? 75 : -75);
+            }
+            return rem + (Math.random() - 0.5) * 5;
+          } else if (ch === 5) {
+            // Muscle Atonia: virtually flatlined
+            return (Math.random() - 0.5) * 3.5;
+          } else if (ch === 6) {
+            return generateECG(t);
+          }
+          return 0;
+        }
+      },
+      {
+        id: 7,
+        title: "Epoch #7: Borderline Slow Wave / N3 Transition",
+        stage: "N3",
+        rationale: "Delta slow waves with amplitude > 75 μV occupy exactly 6.8 seconds (22.6% of the 30-second epoch). Because this meets the >= 20% rule, N3 is the mandatory clinical stage.",
+        aasmRule: "AASM Precision Threshold: Exactly >= 6.0 seconds (20%) of slow waves defines Stage N3.",
+        markers: [
+          { ch: 0, tStart: 5.0, tEnd: 11.8, label: "6.8s of SWA (22.6% >= 20% threshold)" }
+        ],
+        generator: (ch, t) => {
+          let delta = 0;
+          if (t >= 5.0 && t <= 11.8) {
+            delta = Math.sin(2 * Math.PI * 0.9 * t) * 88 + Math.sin(2 * Math.PI * 1.4 * t) * 35;
+          }
+          if (ch === 0) return delta + Math.sin(2 * Math.PI * 5.5 * t) * 14 + (Math.random() - 0.5) * 6;
+          if (ch === 1) return delta * 0.8 + Math.sin(2 * Math.PI * 5.5 * t) * 14 + (Math.random() - 0.5) * 6;
+          if (ch === 5) return (Math.random() - 0.5) * 7;
+          if (ch === 6) return generateECG(t);
+          return (Math.random() - 0.5) * 6;
+        }
+      },
+      {
+        id: 8,
+        title: "Epoch #8: Arousal with Transient Muscle Burst",
+        stage: "W",
+        rationale: "Sudden abrupt shift in EEG frequency accompanied by a high-amplitude tonic EMG burst and returning continuous occipital alpha rhythm lasting > 15 seconds.",
+        aasmRule: "AASM Arousal & Staging Rule: Return of alpha rhythm for > 50% of the epoch returns diagnosis to Stage W.",
+        markers: [
+          { ch: 5, tStart: 8.0, tEnd: 13.0, label: "Muscle Tone Surge (Arousal)" },
+          { ch: 2, tStart: 11.0, tEnd: 29.5, label: "Sustained Alpha Rhythm Return" }
+        ],
+        generator: (ch, t) => {
+          let emgBurst = 0;
+          if (t >= 8.0 && t <= 13.0) emgBurst = (Math.random() - 0.5) * 65;
+          if (ch === 5) return (Math.random() - 0.5) * 16 + emgBurst;
+          if (ch === 2) {
+            const alpha = t > 11.0 ? Math.sin(2 * Math.PI * 10.2 * t) * 42 : Math.sin(2 * Math.PI * 6 * t) * 16;
+            return alpha + (Math.random() - 0.5) * 6;
+          }
+          if (ch === 6) return generateECG(t);
+          return Math.sin(2 * Math.PI * 8 * t) * 14 + (Math.random() - 0.5) * 6;
+        }
+      }
+    ];
+
+    function generateECG(t) {
+      const cycle = (t * 1.1) % 1.0; // ~66 bpm
+      if (cycle > 0.18 && cycle < 0.22) {
+        // QRS complex
+        const rel = (cycle - 0.2) / 0.02;
+        return -Math.cos(rel * Math.PI) * 55;
+      }
+      return (Math.random() - 0.5) * 3;
+    }
+
+    const CHANNELS = [
+      { name: "F4-M1", type: "EEG", color: "#38bdf8", scale: 70 },
+      { name: "C4-M1", type: "EEG", color: "#38bdf8", scale: 70 },
+      { name: "O2-M1", type: "EEG", color: "#38bdf8", scale: 70 },
+      { name: "E1-M2", type: "EOG", color: "#34d399", scale: 50 },
+      { name: "E2-M2", type: "EOG", color: "#34d399", scale: 50 },
+      { name: "Chin1-Chin2", type: "EMG", color: "#f472b6", scale: 20 },
+      { name: "ECG Lead II", type: "ECG", color: "#fb923c", scale: 100 }
+    ];
+
+    /* =====================================================================
+       2. APPLICATION STATE & CONTROLLER
+       ===================================================================== */
+    let currentEpochIndex = 0;
+    let scoredStages = new Array(EPOCHS.length).fill(null);
+    let caliperActive = false;
+    let showClues = false;
+
+    // Caliper drag interaction coordinates
+    let isDraggingCaliper = false;
+    let caliperStart = null;
+    let caliperEnd = null;
+
+    // Canvas elements
+    const psgCanvas = document.getElementById('psgCanvas');
+    const ctx = psgCanvas.getContext('2d');
+    const hypCanvas = document.getElementById('hypnogramCanvas');
+    const hypCtx = hypCanvas.getContext('2d');
+
+    // UI references
+    const epochDisplayTag = document.getElementById('epochDisplayTag');
+    const epochCaseTitle = document.getElementById('epochCaseTitle');
+    const toggleCaliperBtn = document.getElementById('toggleCaliperBtn');
+    const toggleCluesBtn = document.getElementById('toggleCluesBtn');
+    const prevEpochBtn = document.getElementById('prevEpochBtn');
+    const nextEpochBtn = document.getElementById('nextEpochBtn');
+    const caliperOverlay = document.getElementById('caliperOverlay');
+    const feedbackCard = document.getElementById('feedbackCard');
+
+    function init() {
+      setupCanvasResolution();
+      renderCurrentEpoch();
+      renderHypnogram();
+      attachEventListeners();
+      populateConfusionMatrixSim();
+    }
+
+    function setupCanvasResolution() {
+      const rect = psgCanvas.getBoundingClientRect();
+      psgCanvas.width = rect.width * window.devicePixelRatio;
+      psgCanvas.height = rect.height * window.devicePixelRatio;
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+      const hRect = hypCanvas.getBoundingClientRect();
+      hypCanvas.width = hRect.width * window.devicePixelRatio;
+      hypCanvas.height = hRect.height * window.devicePixelRatio;
+      hypCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+
+    window.addEventListener('resize', () => {
+      setupCanvasResolution();
+      renderCurrentEpoch();
+      renderHypnogram();
+    });
+
+    /* =====================================================================
+       3. 30-SECOND PSG CANVAS RENDERING ENGINE
+       ===================================================================== */
+    function renderCurrentEpoch() {
+      const rect = psgCanvas.getBoundingClientRect();
+      const W = rect.width;
+      const H = rect.height;
+
+      // 1. Clear background
+      ctx.fillStyle = '#04070c';
+      ctx.fillRect(0, 0, W, H);
+
+      // 2. Draw 30-Second Time Grid
+      const secWidth = W / 30.0;
+      for (let s = 0; s <= 30; s++) {
+        ctx.beginPath();
+        ctx.lineWidth = (s % 5 === 0) ? 1.0 : 0.5;
+        ctx.strokeStyle = (s % 5 === 0) ? 'rgba(56, 189, 248, 0.16)' : 'rgba(56, 189, 248, 0.05)';
+        ctx.moveTo(s * secWidth, 0);
+        ctx.lineTo(s * secWidth, H);
+        ctx.stroke();
+
+        // Second Labels at major 5-second intervals
+        if (s % 5 === 0) {
+          ctx.fillStyle = '#5c6c84';
+          ctx.font = '10px "JetBrains Mono", monospace';
+          ctx.fillText(`${s}s`, s * secWidth + 4, H - 6);
+        }
+      }
+
+      // 3. Render Channels
+      const channelSpacing = H / CHANNELS.length;
+      const currentEpoch = EPOCHS[currentEpochIndex];
+
+      CHANNELS.forEach((ch, idx) => {
+        const centerY = (idx + 0.5) * channelSpacing;
+
+        // Baseline reference guide
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+        ctx.lineWidth = 1;
+        ctx.moveTo(0, centerY);
+        ctx.lineTo(W, centerY);
+        ctx.stroke();
+
+        // Channel Label and Sensitivity Calibration
+        ctx.fillStyle = ch.color;
+        ctx.font = '600 11px "JetBrains Mono", monospace';
+        ctx.fillText(ch.name, 12, centerY - 14);
+
+        ctx.fillStyle = '#5c6c84';
+        ctx.font = '9px "JetBrains Mono", monospace';
+        ctx.fillText(`${ch.scale} μV`, 12, centerY - 3);
+
+        // Draw Waveform Signal (Sampled at ~600 points across 30 seconds)
+        ctx.beginPath();
+        ctx.lineWidth = 1.3;
+        ctx.strokeStyle = ch.color;
+
+        const points = 800;
+        for (let p = 0; p <= points; p++) {
+          const t = (p / points) * 30.0;
+          const x = (t / 30.0) * W;
+          const val = currentEpoch.generator(idx, t);
+          // Scale to canvas pixels
+          const y = centerY - (val * (channelSpacing * 0.38) / ch.scale);
+
+          if (p === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // 4. Highlight Markers (if toggled)
+        if (showClues && currentEpoch.markers) {
+          currentEpoch.markers.forEach(m => {
+            if (m.ch === idx) {
+              const x1 = (m.tStart / 30.0) * W;
+              const x2 = (m.tEnd / 30.0) * W;
+              const boxW = x2 - x1;
+
+              ctx.fillStyle = 'rgba(245, 158, 11, 0.12)';
+              ctx.fillRect(x1, centerY - channelSpacing * 0.45, boxW, channelSpacing * 0.9);
+
+              ctx.strokeStyle = '#f59e0b';
+              ctx.lineWidth = 1.5;
+              ctx.strokeRect(x1, centerY - channelSpacing * 0.45, boxW, channelSpacing * 0.9);
+
+              ctx.fillStyle = '#f59e0b';
+              ctx.font = '700 10px "Plus Jakarta Sans", sans-serif';
+              ctx.fillText(`★ ${m.label}`, x1 + 6, centerY - channelSpacing * 0.45 + 14);
+            }
+          });
+        }
+      });
+
+      // 5. Draw Digital Caliper Box (if currently measuring)
+      if (caliperStart && caliperEnd) {
+        drawCaliperTool(W, H);
+      }
+    }
+
+    /* =====================================================================
+       4. DIGITAL CALIPER TOOL IMPLEMENTATION
+       ===================================================================== */
+    function drawCaliperTool(W, H) {
+      const x1 = Math.min(caliperStart.x, caliperEnd.x);
+      const x2 = Math.max(caliperStart.x, caliperEnd.x);
+      const y1 = Math.min(caliperStart.y, caliperEnd.y);
+      const y2 = Math.max(caliperStart.y, caliperEnd.y);
+
+      // Measurement Box
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.15)';
+      ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      ctx.setLineDash([]);
+
+      // Duration & Amplitude calculation
+      const dt = ((x2 - x1) / W) * 30.0;
+      // Amplitude approximation based on active channel scale (~70 uV)
+      const channelSpacing = H / CHANNELS.length;
+      const dyPixels = y2 - y1;
+      const dV = (dyPixels / (channelSpacing * 0.38)) * 70.0;
+      const freq = dt > 0 ? (1.0 / dt).toFixed(1) : 0;
+
+      // Update overlay card
+      document.getElementById('caliperDurationVal').textContent = `${dt.toFixed(2)} s`;
+      document.getElementById('caliperAmpVal').textContent = `${dV.toFixed(1)} μV`;
+      document.getElementById('caliperFreqVal').textContent = `${freq} Hz`;
+
+      const ruleFeedback = document.getElementById('caliperRuleFeedback');
+      if (dt >= 0.50 && dV < 75) {
+        ruleFeedback.textContent = "✔ Meets Spindle/K-Complex Duration (>= 0.5s)";
+        ruleFeedback.className = "caliper-rule-tag met";
+      } else if (dV >= 75.0 && dt >= 0.5) {
+        ruleFeedback.textContent = "✔ Meets N3 Slow Wave Criteria (> 75 μV, 0.5-2Hz)";
+        ruleFeedback.className = "caliper-rule-tag met";
+      } else {
+        ruleFeedback.textContent = "Duration < 0.5s or Amplitude < 75 μV";
+        ruleFeedback.className = "caliper-rule-tag";
+      }
+    }
+
+    /* =====================================================================
+       5. HYPNOGRAM STAIRCASE ENGINE
+       ===================================================================== */
+    function renderHypnogram() {
+      const rect = hypCanvas.getBoundingClientRect();
+      const W = rect.width;
+      const H = rect.height;
+
+      hypCtx.fillStyle = '#04070c';
+      hypCtx.fillRect(0, 0, W, H);
+
+      const stages = ['W', 'R', 'N1', 'N2', 'N3'];
+      const stageY = {
+        'W': H * 0.15,
+        'R': H * 0.32,
+        'N1': H * 0.50,
+        'N2': H * 0.68,
+        'N3': H * 0.85
+      };
+
+      // Draw horizontal stage tracks
+      stages.forEach(st => {
+        hypCtx.beginPath();
+        hypCtx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        hypCtx.moveTo(40, stageY[st]);
+        hypCtx.lineTo(W - 10, stageY[st]);
+        hypCtx.stroke();
+
+        hypCtx.fillStyle = '#5c6c84';
+        hypCtx.font = '10px "JetBrains Mono", monospace';
+        hypCtx.fillText(st, 12, stageY[st] + 3);
+      });
+
+      // Draw staircase for scored epochs
+      const stepW = (W - 50) / EPOCHS.length;
+      let prevX = 40;
+      let prevY = null;
+
+      hypCtx.beginPath();
+      hypCtx.lineWidth = 2.5;
+      hypCtx.strokeStyle = '#38bdf8';
+
+      let scoredCount = 0;
+      let totalSleepEpochs = 0;
+
+      scoredStages.forEach((st, idx) => {
+        const x = 40 + (idx * stepW);
+        if (st) {
+          scoredCount++;
+          if (st !== 'W') totalSleepEpochs++;
+          const y = stageY[st];
+
+          if (prevY === null) {
+            hypCtx.moveTo(x, y);
+            hypCtx.lineTo(x + stepW, y);
+          } else {
+            hypCtx.lineTo(x, y);
+            hypCtx.lineTo(x + stepW, y);
+          }
+          prevY = y;
+        }
+      });
+      hypCtx.stroke();
+
+      // Update metrics
+      document.getElementById('hypnogramProgressLabel').textContent = `Scored: ${scoredCount} / ${EPOCHS.length} Epochs`;
+      const tstMinutes = (totalSleepEpochs * 0.5).toFixed(1);
+      document.getElementById('metricTST').textContent = `${tstMinutes} min`;
+      const se = scoredCount > 0 ? ((totalSleepEpochs / scoredCount) * 100).toFixed(1) : 0;
+      document.getElementById('metricSE').textContent = `${se}%`;
+    }
+
+    /* =====================================================================
+       6. CLINICAL SCORING & INTERACTION LOGIC
+       ===================================================================== */
+    function scoreEpoch(selectedStage) {
+      const current = EPOCHS[currentEpochIndex];
+      const isCorrect = (selectedStage === current.stage);
+      scoredStages[currentEpochIndex] = selectedStage;
+
+      // Update stage button styles
+      document.querySelectorAll('.stage-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.getAttribute('data-stage') === selectedStage);
+      });
+
+      // Feedback card
+      feedbackCard.className = "clinical-feedback-card visible";
+      const banner = document.getElementById('feedbackBanner');
+      const icon = document.getElementById('feedbackIcon');
+      const title = document.getElementById('feedbackTitle');
+      const details = document.getElementById('feedbackDetails');
+      const rationale = document.getElementById('feedbackRationale');
+
+      if (isCorrect) {
+        banner.className = "feedback-banner correct";
+        icon.textContent = "✔";
+        title.textContent = `Correct Diagnosis: Stage ${current.stage}`;
+      } else {
+        banner.className = "feedback-banner incorrect";
+        icon.textContent = "✕";
+        title.textContent = `Diagnostic Mismatch: Scored ${selectedStage} vs True ${current.stage}`;
+      }
+
+      details.innerHTML = `<strong>Clinical Presentation:</strong> ${current.rationale}`;
+      rationale.textContent = current.aasmRule;
+
+      renderHypnogram();
+    }
+
+    function switchEpoch(newIdx) {
+      if (newIdx < 0 || newIdx >= EPOCHS.length) return;
+      currentEpochIndex = newIdx;
+      epochDisplayTag.textContent = `EPOCH #${newIdx + 1} / ${EPOCHS.length}`;
+      epochCaseTitle.textContent = EPOCHS[newIdx].title;
+
+      // Reset caliper
+      caliperStart = null;
+      caliperEnd = null;
+
+      // Update button selection state
+      const existingScore = scoredStages[newIdx];
+      document.querySelectorAll('.stage-btn').forEach(btn => {
+        btn.classList.toggle('selected', btn.getAttribute('data-stage') === existingScore);
+      });
+
+      if (existingScore) {
+        scoreEpoch(existingScore);
+      } else {
+        feedbackCard.className = "clinical-feedback-card";
+      }
+
+      renderCurrentEpoch();
+    }
+
+    /* =====================================================================
+       7. INTER-SCORER RELIABILITY (ISR) AUDIT SIMULATOR
+       ===================================================================== */
+    function populateConfusionMatrixSim() {
+      // 5x5 Matrix: True Stages (W, N1, N2, N3, R) vs Scored Stages
+      const matrix = [
+        [32, 2, 0, 0, 1],   // True Wake
+        [3, 24, 4, 0, 1],   // True N1
+        [0, 2, 85, 3, 1],   // True N2
+        [0, 0, 4, 38, 0],   // True N3
+        [1, 1, 1, 0, 42]    // True REM
+      ];
+
+      const stages = ['W', 'N1', 'N2', 'N3', 'REM'];
+      const tbody = document.getElementById('confusionTableBody');
+      tbody.innerHTML = '';
+
+      let totalAgreed = 0;
+      let grandTotal = 0;
+
+      matrix.forEach((row, rIdx) => {
+        const tr = document.createElement('tr');
+        const th = document.createElement('th');
+        th.textContent = stages[rIdx];
+        tr.appendChild(th);
+
+        row.forEach((val, cIdx) => {
+          const td = document.createElement('td');
+          td.textContent = val;
+          if (rIdx === cIdx) {
+            td.className = 'diagonal';
+            totalAgreed += val;
+          } else if (val > 0) {
+            td.className = 'error';
+          }
+          grandTotal += val;
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      const concordancePct = ((totalAgreed / grandTotal) * 100).toFixed(1);
+      document.getElementById('overallAgreementVal').textContent = `${concordancePct}%`;
+    }
+
+    /* =====================================================================
+       8. EVENT LISTENERS & SHORTCUTS
+       ===================================================================== */
+    function attachEventListeners() {
+      // Keyboard shortcuts 1-5 for instant clinical staging
+      window.addEventListener('keydown', (e) => {
+        if (e.key === '1') scoreEpoch('W');
+        else if (e.key === '2') scoreEpoch('N1');
+        else if (e.key === '3') scoreEpoch('N2');
+        else if (e.key === '4') scoreEpoch('N3');
+        else if (e.key === '5') scoreEpoch('R');
+        else if (e.key === 'ArrowRight') switchEpoch(currentEpochIndex + 1);
+        else if (e.key === 'ArrowLeft') switchEpoch(currentEpochIndex - 1);
+      });
+
+      // Stage Buttons
+      document.querySelectorAll('.stage-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          scoreEpoch(btn.getAttribute('data-stage'));
+        });
+      });
+
+      // Epoch Navigation
+      prevEpochBtn.addEventListener('click', () => switchEpoch(currentEpochIndex - 1));
+      nextEpochBtn.addEventListener('click', () => switchEpoch(currentEpochIndex + 1));
+
+      // Caliper Toggle
+      toggleCaliperBtn.addEventListener('click', () => {
+        caliperActive = !caliperActive;
+        toggleCaliperBtn.classList.toggle('active', caliperActive);
+        toggleCaliperBtn.innerHTML = caliperActive 
+          ? `📐 Digital Caliper: ON` 
+          : `📐 Digital Caliper: OFF`;
+        psgCanvas.classList.toggle('caliper-mode', caliperActive);
+        caliperOverlay.classList.toggle('visible', caliperActive);
+        if (!caliperActive) {
+          caliperStart = null;
+          caliperEnd = null;
+          renderCurrentEpoch();
+        }
+      });
+
+      // Clues Toggle
+      toggleCluesBtn.addEventListener('click', () => {
+        showClues = !showClues;
+        toggleCluesBtn.classList.toggle('active', showClues);
+        toggleCluesBtn.classList.toggle('green', showClues);
+        renderCurrentEpoch();
+      });
+
+      // Canvas Mouse Drag for Caliper
+      psgCanvas.addEventListener('mousedown', (e) => {
+        if (!caliperActive) return;
+        const rect = psgCanvas.getBoundingClientRect();
+        isDraggingCaliper = true;
+        caliperStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        caliperEnd = { ...caliperStart };
+        renderCurrentEpoch();
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDraggingCaliper || !caliperActive) return;
+        const rect = psgCanvas.getBoundingClientRect();
+        caliperEnd = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        renderCurrentEpoch();
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (isDraggingCaliper) {
+          isDraggingCaliper = false;
+        }
+      });
+
+      // Tab Switching
+      document.querySelectorAll('.nav-tab-btn[data-tab]').forEach(tabBtn => {
+        tabBtn.addEventListener('click', () => {
+          document.querySelectorAll('.nav-tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+          tabBtn.classList.add('active');
+          const targetId = tabBtn.getAttribute('data-tab');
+          document.getElementById(targetId).classList.add('active');
+
+          if (targetId === 'tab-scoring') {
+            setupCanvasResolution();
+            renderCurrentEpoch();
+            renderHypnogram();
+          }
+        });
+      });
+
+      // 10-20 Scalp Node Selection
+      const electrodeMeta = {
+        'Fp1': { lobe: 'FRONTAL POLAR (LEFT)', desc: 'Detects vertical eye movement artifacts (Bell\'s phenomenon) and high-amplitude frontal delta activity.' },
+        'Fp2': { lobe: 'FRONTAL POLAR (RIGHT)', desc: 'Paired with Fp1 for monitoring anterior slow rhythms and orbital artifact discrimination.' },
+        'F3': { lobe: 'FRONTAL REGION (LEFT)', desc: 'Key channel for observing high-amplitude K-complexes and frontal slow wave sleep.' },
+        'F4': { lobe: 'FRONTAL REGION (RIGHT)', desc: 'AASM standard frontal exploration channel (F4-M1) for evaluating delta waves in Stage N3.' },
+        'C3': { lobe: 'CENTRAL REGION (LEFT)', desc: 'Central sensorimotor cortex. Primary channel for Vertex Sharp Waves and Sleep Spindles.' },
+        'C4': { lobe: 'CENTRAL REGION (RIGHT)', desc: 'AASM standard central lead (C4-M1). Gold standard for scoring sleep spindles (11–16 Hz) in Stage N2.' },
+        'O1': { lobe: 'OCCIPITAL REGION (LEFT)', desc: 'Visual cortex. Records Posterior Dominant Alpha Rhythm (8–13 Hz) during relaxed wakefulness with eyes closed.' },
+        'O2': { lobe: 'OCCIPITAL REGION (RIGHT)', desc: 'AASM standard occipital channel (O2-M1) for Stage Wake diagnosis.' },
+        'M1': { lobe: 'LEFT MASTOID REFERENCE', desc: 'Electrically neutral bone behind left ear. Serves as reference for right-sided electrodes.' },
+        'M2': { lobe: 'RIGHT MASTOID REFERENCE', desc: 'Reference electrode for contralateral left-sided explorations (e.g., C3-M2).' }
+      };
+
+      document.querySelectorAll('.scalp-node').forEach(node => {
+        node.addEventListener('click', () => {
+          document.querySelectorAll('.scalp-node').forEach(n => n.classList.remove('active'));
+          node.classList.add('active');
+
+          const elName = node.getAttribute('data-electrode');
+          const meta = electrodeMeta[elName] || { lobe: 'CORTICAL LEAD', desc: 'Standard 10-20 electrophysiological exploration site.' };
+
+          document.getElementById('electrodeTitle').textContent = `Electrode Site: ${elName}`;
+          document.getElementById('electrodeLobeBadge').textContent = meta.lobe;
+          document.getElementById('electrodeDesc').textContent = meta.desc;
+        });
+      });
+
+      // Modal Drawer
+      const guidelinesModal = document.getElementById('guidelinesModal');
+      document.getElementById('openGuidelinesBtn').addEventListener('click', () => {
+        guidelinesModal.classList.add('open');
+      });
+      document.getElementById('closeGuidelinesBtn').addEventListener('click', () => {
+        guidelinesModal.classList.remove('open');
+      });
+      guidelinesModal.addEventListener('click', (e) => {
+        if (e.target === guidelinesModal) guidelinesModal.classList.remove('open');
+      });
+
+      // Simulated ISR Audit
+      document.getElementById('runISRAuditBtn').addEventListener('click', () => {
+        populateConfusionMatrixSim();
+        alert("Simulated AASM Inter-Scorer Reliability Audit Recomputed: Cohen's Kappa = 0.884 (Facility Pass).");
+      });
+    }
+
+    // Launch application
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
